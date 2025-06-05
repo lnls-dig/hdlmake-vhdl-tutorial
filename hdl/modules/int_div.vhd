@@ -80,15 +80,15 @@ architecture rtl of int_div is
   signal result_sign: std_logic;
   -- Stores the expected sign of the final remainder result
   signal rem_sign: std_logic;
+  -- Minimum representable signed value
+  constant min_signed : signed(0 to g_BIT_WIDTH-1) := (0 => '1', others => '0');
 
 begin
-  process(all)
+  process(clk_i)
     -- Temporary for next remainder
     variable rem_next : unsigned(g_BIT_WIDTH-1 downto 0);
     -- Temporary for next quotient
     variable quot_next : unsigned(g_BIT_WIDTH-1 downto 0);
-    -- Minimum representable signed value
-    variable min_signed : signed(g_BIT_WIDTH-1 downto 0);
   begin
     if rising_edge(clk_i) then
       if rst_n_i = '0' then
@@ -108,7 +108,6 @@ begin
             -- IDLE state: waiting for a valid request
             busy_o <= '0';
             valid_o <= '0';
-            min_signed := to_signed(-2**(g_BIT_WIDTH - 1), g_BIT_WIDTH);
 
             -- Request to begin operation
             if valid_i = '1' then
@@ -133,8 +132,8 @@ begin
 
 
                 -- Convert operands to absolute unsigned values (unsigned) for shift/subtract
-                dividend_abs <= to_unsigned(abs(to_integer(a_i)), g_BIT_WIDTH);
-                divisor_abs  <= to_unsigned(abs(to_integer(b_i)), g_BIT_WIDTH);
+                dividend_abs <= unsigned(abs(a_i));
+                divisor_abs  <= unsigned(abs(b_i));
 
                 -- Sign of quotient determined by XOR of signs
                 result_sign <= a_i(g_BIT_WIDTH-1) xor b_i(g_BIT_WIDTH-1);
